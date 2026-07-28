@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#173c2c">
+  <title>Minecraft Monthly — 1か月のサーバー記録</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <div class="shell header-inner">
+      <a class="brand" href="#overview" aria-label="トップへ">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <span>
+          <strong>Minecraft Monthly</strong>
+          <small>1か月のサーバー記録</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="メインナビゲーション">
+        <a href="#overview" data-nav="overview">概要</a>
+        <a href="#rankings" data-nav="rankings">ランキング</a>
+        <a href="#players" data-nav="players">プレイヤー</a>
+        <a href="#buildings" data-nav="buildings">建築物</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="shell page-shell">
+    <section id="overview-view" class="view" aria-labelledby="overview-title"></section>
+    <section id="rankings-view" class="view" aria-labelledby="rankings-title" hidden></section>
+    <section id="players-view" class="view" aria-labelledby="players-title" hidden></section>
+    <section id="player-view" class="view" aria-labelledby="player-title" hidden></section>
+    <section id="buildings-view" class="view" aria-labelledby="buildings-title" hidden></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell footer-inner">
+      <span>1か月限定で遊んだMinecraftサーバーの記録アーカイブです。</span>
+      <span id="updated-at"></span>
+    </div>
+  </footer>
+</body>
+</html>
