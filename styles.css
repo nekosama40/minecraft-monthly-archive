@@ -313,6 +313,7 @@ h3 {
 .distance-card strong {
   font-size: clamp(17px, 2vw, 25px);
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .portal-grid {
@@ -331,17 +332,21 @@ h3 {
   justify-content: flex-end;
   padding: 22px;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 2px solid #a8c9b3;
   border-radius: var(--radius);
-  background: var(--surface);
+  background: linear-gradient(145deg, #fff, #f4faf5);
   box-shadow: var(--shadow);
   text-decoration: none;
-  transition: transform .18s ease, border-color .18s ease;
+  cursor: pointer;
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease;
 }
 
-.portal-card:hover {
+.portal-card:hover,
+.portal-card:focus-visible {
   transform: translateY(-3px);
-  border-color: #9cbda8;
+  border-color: var(--green);
+  box-shadow: 0 16px 32px rgba(23, 60, 44, .14);
+  outline: none;
 }
 
 .portal-card > span {
@@ -362,6 +367,25 @@ h3 {
 .portal-card small {
   margin-top: 7px;
   color: var(--muted);
+}
+
+.portal-card em {
+  display: inline-flex;
+  align-items: center;
+  gap: 18px;
+  margin-top: 17px;
+  padding: 8px 11px 8px 13px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--green);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.portal-card em b {
+  font-size: 16px;
+  line-height: 1;
 }
 
 .overview-grid {
@@ -560,7 +584,7 @@ h3 {
 .ranking-row {
   position: relative;
   display: grid;
-  grid-template-columns: 52px 48px minmax(140px, 1fr) minmax(160px, 2fr) 110px;
+  grid-template-columns: 52px 48px minmax(140px, 1fr) minmax(120px, 2fr) minmax(190px, auto);
   align-items: center;
   gap: 14px;
   min-height: 74px;
@@ -618,6 +642,7 @@ h3 {
 .rank-value {
   color: var(--green-dark);
   font-weight: 800;
+  line-height: 1.4;
   text-align: right;
 }
 
@@ -818,6 +843,64 @@ h3 {
   color: var(--green-dark);
   background: var(--green-soft);
   line-height: 1.85;
+}
+
+.style-profile {
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+
+.style-type {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--green);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.title-block {
+  width: 100%;
+  margin-top: 18px;
+  padding: 15px 16px;
+  border-left: 4px solid var(--gold);
+  border-radius: 0 13px 13px 0;
+  background: #fff9e9;
+}
+
+.title-block small,
+.title-block strong {
+  display: block;
+}
+
+.title-block small {
+  color: #8b6b22;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.title-block strong {
+  margin-top: 4px;
+  color: var(--green-dark);
+  font-size: 20px;
+  line-height: 1.45;
+}
+
+.style-story {
+  margin: 18px 0 0;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 2;
+}
+
+.style-evidence {
+  width: 100%;
+  margin: auto 0 0;
+  padding-top: 18px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .detail-grid {
@@ -1086,10 +1169,28 @@ h3 {
   }
 
   .ranking-row {
-    grid-template-columns: 34px 40px minmax(90px, 1fr) 82px;
+    grid-template-columns: 34px 40px minmax(0, 1fr);
+    grid-template-rows: auto auto;
     gap: 9px;
     min-height: 64px;
-    padding-inline: 10px;
+    padding: 12px 10px;
+  }
+
+  .ranking-row .rank-number,
+  .ranking-row .rank-avatar {
+    grid-row: 1 / 3;
+  }
+
+  .ranking-row .rank-name {
+    grid-column: 3;
+    align-self: end;
+  }
+
+  .ranking-row .rank-value {
+    grid-column: 3;
+    align-self: start;
+    font-size: 11px;
+    text-align: left;
   }
 
   .rank-avatar {
@@ -1097,8 +1198,7 @@ h3 {
     height: 38px;
   }
 
-  .rank-name,
-  .rank-value {
+  .rank-name {
     font-size: 12px;
   }
 

@@ -46,12 +46,23 @@
     return `${number.format(blocks)}ブロック（約${number.format(chunks)}チャンク分）`;
   };
 
+  const formatDeathPace = (player) =>
+    player.playSeconds <= 36000
+      ? `${number.format(player.deaths)}回（実数）`
+      : `${Number(player.deathRate10h || 0).toFixed(1)}回 / 10h`;
+
+  const formatMeetingPace = (player) =>
+    player.playSeconds <= 36000
+      ? `${number.format(player.metCount)}人（実数）`
+      : `${Number(player.metRate10h || 0).toFixed(1)}人 / 10h`;
+
   const formatValue = (player, category) => {
     if (category.key === "playSeconds") return formatDuration(player.playSeconds, true);
     if (category.key === "distanceCm") return formatDistance(player.distanceCm);
+    if (category.key === "deathRate10h") return formatDeathPace(player);
+    if (category.key === "metRate10h") return formatMeetingPace(player);
     if (category.format === "percent") return `${Number(player[category.key] || 0).toFixed(1)}%`;
     if (category.format === "average") return `平均${Number(player[category.key] || 0).toFixed(2)}人`;
-    if (category.format === "deathRate") return `${Number(player[category.key] || 0).toFixed(1)}回 / 10h`;
     return `${number.format(player[category.key] || 0)}${category.unit || ""}`;
   };
 
@@ -64,17 +75,18 @@
     { key: "minedBlocks", label: "採掘", description: "採掘したブロック数" },
     { key: "placedBlocks", label: "設置", description: "設置したブロック数" },
     { key: "harvestedCrops", label: "収穫", description: "収穫した作物数" },
+    { key: "fishCaught", label: "釣り", description: "期間中に釣り上げた魚の数", unit: "匹" },
     { key: "biomes", label: "バイオーム", description: "訪れたバイオーム数" },
     { key: "points", label: "進捗ポイント", description: "期間中に獲得した進捗ポイント" },
     { key: "combatMobKills", label: "Mob討伐", description: "3か所のトラップ地域を除外した推定討伐数", unit: "体" },
-    { key: "baseRate", label: "拠点依存率", description: "拠点から512ブロック以内にいた割合", format: "percent" },
+    { key: "baseRate", label: "拠点依存率", description: "拠点から800ブロック以内にいた割合", format: "percent" },
     { key: "expeditionRate", label: "遠征生活率", description: "拠点から5,000ブロック以上、または異世界にいた割合", format: "percent" },
     { key: "undergroundRate", label: "地下生活率", description: "オーバーワールドのY50未満にいた割合", format: "percent" },
-    { key: "dangerRate", label: "危険地帯", description: "トラップを除く戦闘・死亡が観測された地域にいた割合", format: "percent" },
+    { key: "dangerRate", label: "危険地帯", description: "拠点とトラップを除き、戦闘・死亡が観測された地域にいた割合", format: "percent" },
     { key: "soloRate", label: "ひとり時間率", description: "256ブロック以内にほかの対象者がいなかった割合", format: "percent" },
     { key: "crowdAverage", label: "にぎやか中心度", description: "100ブロック以内にいた対象者の平均人数", format: "average" },
-    { key: "metCount", label: "出会った人数", description: "実際に100ブロック以内へ近づいた異なる人数", unit: "人" },
-    { key: "deathRate10h", label: "死亡ペース", description: "プレイ時間の差をならした10時間あたりの死亡回数", format: "deathRate" },
+    { key: "metRate10h", label: "出会いペース", description: "100ブロック以内へ近づいた異なる人数を10時間基準で比較。10時間未満は実数のまま" },
+    { key: "deathRate10h", label: "死亡ペース", description: "10時間を超えた人だけ10時間相当に換算し、10時間未満は実際の死亡回数のまま比較" },
   ];
 
   const getRanking = (key) =>
@@ -114,7 +126,6 @@
         <div class="hero-meta">
           <span class="pill">${esc(data.period.range)}</span>
           <span class="pill">${number.format(data.summary.participantCount)}人が参加</span>
-          <span class="pill">分析対象 ${number.format(data.summary.eligibleCount)}人</span>
         </div>
       </div>
 
@@ -127,7 +138,7 @@
         <article class="summary-card">
           <span>分析対象のプレイ時間</span>
           <strong>${formatDuration(data.summary.playSeconds, true)}</strong>
-          <small>5時間以上プレイした人の合計</small>
+          <small>ランキング対象者の合計</small>
         </article>
         <article class="summary-card distance-card">
           <span>世界を移動した距離</span>
@@ -143,13 +154,13 @@
 
       <nav class="portal-grid" aria-label="詳しい記録を見る">
         <a class="portal-card" href="#rankings">
-          <span>01</span><strong>ランキング</strong><small>いろいろな角度から順位を見る</small>
+          <span>01</span><strong>ランキング</strong><small>いろいろな角度から順位を見る</small><em>ランキングを見る <b>→</b></em>
         </a>
         <a class="portal-card" href="#players">
-          <span>02</span><strong>プレイヤー図鑑</strong><small>二つ名とプレイスタイルを見る</small>
+          <span>02</span><strong>プレイヤー図鑑</strong><small>二つ名とプレイスタイルを見る</small><em>図鑑を見る <b>→</b></em>
         </a>
         <a class="portal-card" href="#buildings">
-          <span>03</span><strong>建造物</strong><small>この世界に残ったものを見る</small>
+          <span>03</span><strong>建造物</strong><small>この世界に残ったものを見る</small><em>建造物を見る <b>→</b></em>
         </a>
       </nav>
 
@@ -184,22 +195,6 @@
             </div>
           </article>
         </div>
-        ${data.pairs?.length ? `
-          <article class="panel duo-panel">
-            <p class="eyebrow">Best Duo</p>
-            <h3>今月の名コンビ</h3>
-            <div class="duo-list">
-              ${data.pairs.slice(0, 3).map((pair, index) => `
-                <div class="duo-row">
-                  <span class="rank-number">${index + 1}</span>
-                  <div>
-                    <b>${esc(pair.leftName)} × ${esc(pair.rightName)}</b>
-                    <small>同時観測 約${pair.sharedHours}時間 / 100ブロック以内 ${pair.closeRate}%</small>
-                  </div>
-                  <strong>${Math.round(pair.score)}点</strong>
-                </div>`).join("")}
-            </div>
-          </article>` : ""}
         <div class="notice"><strong>位置・戦闘指標について：</strong> 約15分間隔の記録から推定しています。Mob討伐数は確認済みの3か所のトラップ地域を除外しています。</div>
       </section>`;
 
@@ -217,7 +212,7 @@
       <header class="page-title">
         <p class="eyebrow">Rankings</p>
         <h1 id="rankings-title">ランキング</h1>
-        <p class="lead">${esc(category.description)}。5時間以上プレイした${number.format(data.summary.eligibleCount)}人が対象です。</p>
+        <p class="lead">${esc(category.description)}。</p>
       </header>
       <div class="toolbar">
         <div class="category-tabs" role="tablist" aria-label="ランキングの種類">
@@ -261,7 +256,7 @@
       <header class="page-title">
         <p class="eyebrow">Players</p>
         <h1 id="players-title">プレイヤー</h1>
-        <p class="lead">5時間以上遊んだ${number.format(data.summary.eligibleCount)}人の、二つ名と「この1か月の遊び方」を見られます。</p>
+        <p class="lead">プレイヤーごとの二つ名と「この1か月の遊び方」を見られます。</p>
       </header>
       <div class="search-row">
         <input class="search-input" type="search" value="${esc(playerSearch)}" placeholder="プレイヤー名で検索" aria-label="プレイヤー名で検索">
@@ -305,9 +300,10 @@
     bindPlayerLinks(views.players);
   };
 
-  const radarSvg = (radar) => {
+  const radarSvg = (radar, medianRadar = {}) => {
     const labels = Object.keys(radar);
     const values = Object.values(radar).map(Number);
+    const medianValues = labels.map((label) => Number(medianRadar[label] ?? 50));
     const center = 170;
     const radius = 112;
     const angle = (index) => -Math.PI / 2 + index * (Math.PI * 2 / labels.length);
@@ -317,6 +313,7 @@
     };
     const points = (scale) => labels.map((_, index) => point(index, scale).join(",")).join(" ");
     const valuePoints = values.map((value, index) => point(index, Math.max(0, Math.min(100, value)) / 100).join(",")).join(" ");
+    const medianPoints = medianValues.map((value, index) => point(index, Math.max(0, Math.min(100, value)) / 100).join(",")).join(" ");
 
     return `
       <svg class="radar-svg" viewBox="0 0 340 340" role="img" aria-label="プレイスタイルのレーダーチャート">
@@ -325,26 +322,19 @@
           const [x, y] = point(index, 1);
           return `<line x1="${center}" y1="${center}" x2="${x}" y2="${y}" stroke="#d9e0da" stroke-width="1"/>`;
         }).join("")}
-        <polygon points="${points(.5)}" fill="none" stroke="#d5a72d" stroke-width="2" stroke-dasharray="5 5"/>
+        <polygon points="${medianPoints}" fill="none" stroke="#d5a72d" stroke-width="2" stroke-dasharray="5 5"/>
         <polygon points="${valuePoints}" fill="rgba(46,117,82,.25)" stroke="#2e7552" stroke-width="3"/>
         ${values.map((value, index) => {
           const [x, y] = point(index, Math.max(0, Math.min(100, value)) / 100);
           return `<circle cx="${x}" cy="${y}" r="4" fill="#2e7552"/>`;
         }).join("")}
         ${labels.map((label, index) => {
-          const [x, y] = point(index, 1.22);
-          const anchor = x < center - 10 ? "end" : x > center + 10 ? "start" : "middle";
-          return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="#59675f" font-size="12" font-weight="700">${esc(label)}</text>`;
-        }).join("")}
-        <text x="170" y="327" text-anchor="middle" fill="#9a7620" font-size="10">黄色の点線＝サーバー中央値</text>
-      </svg>`;
-  };
-
-  const profileSummary = (player) => {
-    const axes = Object.entries(player.radar).sort((a, b) => b[1] - a[1]);
-    const first = axes[0]?.[0] || "活動量";
-    const second = axes[1]?.[0] || "探索";
-    return `「${player.title}」。特に「${first}」と「${second}」が目立つプレイスタイルです。${player.highlight.label}は${player.highlight.value}でした。`;
+           const [x, y] = point(index, 1.22);
+           const anchor = x < center - 10 ? "end" : x > center + 10 ? "start" : "middle";
+           return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="#59675f" font-size="12" font-weight="700">${esc(label)} <tspan fill="#173c2c" font-size="14">${Math.round(values[index])}</tspan></text>`;
+         }).join("")}
+         <text x="170" y="327" text-anchor="middle" fill="#9a7620" font-size="10">黄色の点線＝サーバー中央値</text>
+       </svg>`;
   };
 
   const renderPlayer = (id) => {
@@ -364,48 +354,45 @@
       ["釣り", number.format(player.fishCaught)],
       ["進捗ポイント", number.format(player.points)],
       ["死亡回数", number.format(player.deaths)],
-      ["10時間あたり死亡", `${Number(player.deathRate10h).toFixed(1)}回`],
+      ["死亡ペース", formatDeathPace(player)],
       ["Mob討伐（トラップ除外推定）", number.format(player.combatMobKills)],
     ];
     views.player.innerHTML = `
       <button class="back-button" type="button" data-back>← プレイヤー一覧</button>
       <div class="profile-layout section-block">
         <aside class="panel profile-aside">
-          <img class="profile-body" src="${esc(player.body)}" alt="${esc(player.name)} のスキン全身">
-          <h1 id="player-title">${esc(player.name)}</h1>
-          <span class="tag">${esc(playerTag(player))}</span>
-          <div class="big-time"><small>1か月のプレイ時間</small>${formatDuration(player.playSeconds, true)}</div>
+           <img class="profile-body" src="${esc(player.body)}" alt="${esc(player.name)} のスキン全身">
+           <h1 id="player-title">${esc(player.name)}</h1>
+           <div class="big-time"><small>1か月のプレイ時間</small>${formatDuration(player.playSeconds, true)}</div>
         </aside>
         <div class="profile-content">
           <div class="profile-top-grid">
             <article class="panel">
               <p class="eyebrow">Play Style</p>
               <h2>プレイスタイル</h2>
-              <div class="radar-wrap">${radarSvg(player.radar)}</div>
-            </article>
-            <article class="panel">
-              <p class="eyebrow">Relative Score</p>
-              <h2>みんなの中での特徴</h2>
-              <div class="score-list">
-                ${Object.entries(player.radar).map(([label, value]) => `
-                  <div class="score-row">
-                    <span>${esc(label)}</span>
-                    <div class="bar-track" aria-hidden="true"><div class="bar-fill" style="width:${value}%"></div></div>
-                    <b>${Math.round(value)}</b>
-                  </div>`).join("")}
-              </div>
-              <p class="profile-summary">${esc(profileSummary(player))}</p>
-            </article>
+              <div class="radar-wrap">${radarSvg(player.radar, data.analytics.radarMedian)}</div>
+             </article>
+             <article class="panel style-profile">
+               <p class="eyebrow">Your Play Style</p>
+               <h2>あなたのプレイスタイル</h2>
+               <span class="style-type">${esc(player.styleType || "プレイヤータイプ")}</span>
+               <div class="title-block">
+                 <small>二つ名</small>
+                 <strong>${esc(playerTag(player))}</strong>
+               </div>
+               <p class="style-story">${esc(player.styleText || "この世界での行動から、あなたらしい遊び方を読み解きました。")}</p>
+               <p class="style-evidence">際立った記録：${esc(player.highlight?.label || "特徴")} ${esc(player.highlight?.value || "—")}</p>
+             </article>
           </div>
           <article class="panel">
-            <p class="eyebrow">Monthly Record</p>
+             <p class="eyebrow">One-Month Record</p>
             <h2>この1か月の記録</h2>
             <div class="detail-grid">
               ${details.map(([label, value]) => `<div class="detail-item"><span>${label}</span><strong>${value}</strong></div>`).join("")}
             </div>
           </article>
           ${renderStory(player)}
-          <div class="notice">レーダーは5時間以上遊んだ人の10時間あたり行動量を中心に比較し、黄色の点線を中央値としています。位置・交流・戦闘は約15分間隔の記録からの推定です。</div>
+           <div class="notice">レーダーは対象者内での相対的な特徴を0～100で表し、黄色の点線を中央値としています。10時間未満の記録は実数を超えないよう補正していません。位置・交流・戦闘は約15分間隔の記録からの推定です。</div>
         </div>
       </div>`;
     views.player.querySelector("[data-back]").addEventListener("click", () => {
@@ -440,11 +427,11 @@
         <div class="detail-item"><span>危険地帯滞在率</span><strong>${player.dangerRate}%</strong></div>
         <div class="detail-item"><span>ひとり時間率</span><strong>${player.soloRate}%</strong></div>
         <div class="detail-item"><span>近くにいた平均人数</span><strong>${Number(player.crowdAverage).toFixed(2)}人</strong></div>
-        <div class="detail-item"><span>出会った人数</span><strong>${number.format(player.metCount)}人</strong></div>
+        <div class="detail-item"><span>出会いペース</span><strong>${formatMeetingPace(player)}</strong></div>
         <div class="detail-item"><span>観測したチャンク</span><strong>${number.format(player.observedChunks)}</strong></div>
         <div class="detail-item"><span>名コンビ</span><strong>${pairText}</strong></div>
       </div>
-      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。</p>
+      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。危険地帯からは拠点範囲と確認済みのトラップ地域を除外しています。出会いペースは10時間を超えた人だけ10時間相当に換算します。</p>
     </article>`;
   };
 
@@ -457,7 +444,7 @@
       </header>
       <div class="building-intro">
         <article class="panel">
-          <h2>建築も「今月の物語」に</h2>
+          <h2>建築も「この1か月の物語」に</h2>
           <p class="lead">数値だけでは残りにくい共同建築やお気に入りの場所を、発表の最後に一覧で見せる想定です。スクリーンショットがあれば、そのままカードの大きな画像に差し替えられます。</p>
         </article>
         <article class="panel">
