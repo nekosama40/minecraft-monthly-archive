@@ -35,15 +35,14 @@
     return `${number.format(hours)}時間 ${remain}分`;
   };
 
-  const distanceParts = (centimeters) => {
-    const blocks = Math.round(Number(centimeters || 0) / 100);
-    const chunks = Math.round(blocks / 16);
-    return { blocks, chunks };
-  };
-
   const formatDistance = (centimeters) => {
-    const { blocks, chunks } = distanceParts(centimeters);
-    return `${number.format(blocks)}ブロック（約${number.format(chunks)}チャンク分）`;
+    const blocks = Math.round(Number(centimeters || 0) / 100);
+    if (blocks < 10000) return `${number.format(blocks)}ブロック`;
+    const tenThousands = (blocks / 10000).toLocaleString("ja-JP", {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 1,
+    });
+    return `約${tenThousands}万ブロック`;
   };
 
   const formatDeathPace = (player) =>
@@ -82,7 +81,7 @@
     { key: "baseRate", label: "拠点依存率", description: "拠点周辺にいた割合", format: "percent" },
     { key: "expeditionRate", label: "遠征生活率", description: "拠点から5,000ブロック以上、または異世界にいた割合", format: "percent" },
     { key: "undergroundRate", label: "地下生活率", description: "オーバーワールドのY50未満にいた割合", format: "percent" },
-    { key: "dangerRate", label: "危険地帯", description: "拠点とトラップを除き、戦闘・死亡が観測された地域にいた割合", format: "percent" },
+    { key: "combatTimeRate", label: "戦闘時間率", description: "本人の討伐・死亡が増えた時間の割合。拠点、トラップ、異常増加は除外", format: "percent" },
     { key: "soloRate", label: "ひとり時間率", description: "256ブロック以内にほかの対象者がいなかった割合", format: "percent" },
     { key: "crowdAverage", label: "にぎやか中心度", description: "100ブロック以内にいた対象者の平均人数", format: "average" },
     { key: "metRate10h", label: "出会いペース", description: "100ブロック以内へ近づいた異なる人数を10時間あたりで比較" },
@@ -99,7 +98,6 @@
   };
 
   const renderOverview = () => {
-    const totalDistance = distanceParts(data.summary.distanceCm);
     const topTime = getRanking("playSeconds")[0];
     const topTravel = getRanking("distanceCm")[0];
     const topBuild = getRanking("placedBlocks")[0];
@@ -122,7 +120,7 @@
       <div class="hero">
         <p class="eyebrow">One-Month Server Archive</p>
         <h1 id="overview-title">ねこさま Server<br><span>Minecraft Monthly</span></h1>
-        <p class="lead">期間限定サーバーで誰がどんな時間を過ごしたのかを、探索・建築・生活のバランスとともに残した記録です。</p>
+        <p class="lead">期間限定サーバーで誰がどんな時間を過ごしたのかを、冒険・建築・生活のバランスとともに残した記録です。</p>
         <div class="hero-meta">
           <span class="pill">${esc(data.period.range)}</span>
           <span class="pill">${number.format(data.summary.participantCount)}人が参加</span>
@@ -142,8 +140,8 @@
         </article>
         <article class="summary-card distance-card">
           <span>世界を移動した距離</span>
-          <strong>${number.format(totalDistance.blocks)}ブロック</strong>
-          <small>約${number.format(totalDistance.chunks)}チャンク分（16ブロック換算）</small>
+          <strong>${formatDistance(data.summary.distanceCm)}</strong>
+          <small>ランキング対象者の合計</small>
         </article>
         <article class="summary-card">
           <span>置かれたブロック</span>
@@ -217,7 +215,7 @@
       <div class="toolbar">
         <div class="category-tabs" role="tablist" aria-label="ランキングの種類">
           ${rankingCategories.map((item) => `
-            <button type="button" class="${item.key === category.key ? "active" : ""}" data-category="${item.key}">
+            <button type="button" role="tab" aria-selected="${item.key === category.key}" class="${item.key === category.key ? "active" : ""}" data-category="${item.key}">
               ${esc(item.label)}
             </button>`).join("")}
         </div>
@@ -391,7 +389,7 @@
             </div>
           </article>
           ${renderStory(player)}
-           <div class="notice">レーダーは対象者内での相対的な特徴を0～100で表し、黄色の点線を中央値としています。行動量は10時間あたりに換算して比較し、位置・交流・戦闘は約15分間隔の記録から推定しています。</div>
+           <div class="notice">レーダーは対象者内での相対的な特徴を0～100で表し、黄色の点線を中央値としています。採掘・建築・生活・Mob討伐は10時間あたり、進捗は期間中の総ポイントで比較し、位置・交流・戦闘は約15分間隔の記録から推定しています。</div>
         </div>
       </div>`;
     views.player.querySelector("[data-back]").addEventListener("click", () => {
@@ -402,7 +400,7 @@
   const renderStory = (player) => {
     const normalRate = Math.max(0, 100 - player.baseRate - player.expeditionRate);
     const pairText = player.bestPair
-      ? `${esc(player.bestPair.partner_name)} / 相性度 ${Number(player.bestPair.score).toFixed(0)}%`
+      ? `${esc(player.bestPair.partner_name)} / 同行度 ${Number(player.bestPair.score).toFixed(0)}%`
       : "該当なし";
     return `
     <article class="panel">
@@ -423,14 +421,14 @@
         <div class="detail-item"><span>拠点依存率</span><strong>${player.baseRate}%</strong></div>
         <div class="detail-item"><span>遠征生活率</span><strong>${player.expeditionRate}%</strong></div>
         <div class="detail-item"><span>地下生活率</span><strong>${player.undergroundRate}%</strong></div>
-        <div class="detail-item"><span>危険地帯滞在率</span><strong>${player.dangerRate}%</strong></div>
+        <div class="detail-item"><span>戦闘時間率</span><strong>${player.combatTimeRate}%</strong></div>
         <div class="detail-item"><span>ひとり時間率</span><strong>${player.soloRate}%</strong></div>
         <div class="detail-item"><span>近くにいた平均人数</span><strong>${Number(player.crowdAverage).toFixed(2)}人</strong></div>
         <div class="detail-item"><span>出会いペース</span><strong>${formatMeetingPace(player)}</strong></div>
         <div class="detail-item"><span>観測したチャンク</span><strong>${number.format(player.observedChunks)}</strong></div>
         <div class="detail-item"><span>ベストパートナー</span><strong>${pairText}</strong></div>
       </div>
-      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。危険地帯からは拠点範囲と確認済みのトラップ地域を除外しています。ベストパートナーは同時観測${number.format(data.analytics.pairMinSharedHours)}時間以上のペアを、ログイン重複・近距離・行動の似方から判定します。</p>
+      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。戦闘時間率は本人の討伐・死亡が増えた時間だけを数え、拠点・トラップ・異常増加を除外しています。ベストパートナーは${number.format(data.analytics.pairMinCloseHours)}時間以上近くにいた相手から選び、近いほど強く、拠点内は半分、拠点外で続いた同行は強めに評価します。</p>
     </article>`;
   };
 
