@@ -540,10 +540,37 @@ h3 {
 
 .toolbar {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 11px;
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 14px;
   margin-bottom: 22px;
+}
+
+.ranking-group-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--green-soft);
+}
+
+.ranking-group-tabs button {
+  min-height: 38px;
+  padding: 8px 15px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--green-dark);
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ranking-group-tabs button.active {
+  color: #fff;
+  background: var(--green-dark);
+  box-shadow: 0 4px 12px rgba(23, 60, 44, 0.16);
 }
 
 .category-tabs {
@@ -571,6 +598,10 @@ h3 {
 }
 
 @media (hover: hover) and (pointer: fine) {
+  .ranking-group-tabs button:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.72);
+  }
+
   .category-tabs button:hover:not(.active) {
     color: var(--green);
     border-color: var(--green);
@@ -1146,6 +1177,16 @@ h3 {
   .main-nav {
     overflow-x: auto;
     padding-bottom: 2px;
+  }
+
+  .ranking-group-tabs {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ranking-group-tabs button {
+    flex: 1 1 auto;
+    white-space: nowrap;
   }
 
   .main-nav a {

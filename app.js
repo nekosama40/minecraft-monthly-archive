@@ -51,15 +51,14 @@
       : `${Number(player.deathRate10h || 0).toFixed(1)}回 / 10h`;
 
   const formatMeetingPace = (player) =>
-    player.playSeconds <= 36000
-      ? `${number.format(player.metCount)}人（実数）`
-      : `${Number(player.metRate10h || 0).toFixed(1)}人 / 10h`;
+    `${Number(player.metRate10h || 0).toFixed(1)}人 / 10h`;
 
   const formatValue = (player, category) => {
     if (category.key === "playSeconds") return formatDuration(player.playSeconds, true);
     if (category.key === "distanceCm") return formatDistance(player.distanceCm);
     if (category.key === "deathRate10h") return formatDeathPace(player);
     if (category.key === "metRate10h") return formatMeetingPace(player);
+    if (category.format === "estimatedDuration") return `約${formatDuration(player[category.key], true)}`;
     if (category.format === "percent") return `${Number(player[category.key] || 0).toFixed(1)}%`;
     if (category.format === "average") return `平均${Number(player[category.key] || 0).toFixed(2)}人`;
     return `${number.format(player[category.key] || 0)}${category.unit || ""}`;
@@ -68,26 +67,60 @@
   const avatar = (player) =>
     `<img class="rank-avatar" src="${esc(player.avatar)}" alt="${esc(player.name)} のスキン">`;
 
-  const rankingCategories = [
-    { key: "playSeconds", label: "プレイ時間", description: "この期間にサーバーで過ごした時間" },
-    { key: "distanceCm", label: "移動距離", description: "歩行・飛行などを含む総移動距離" },
-    { key: "minedBlocks", label: "採掘", description: "採掘したブロック数" },
-    { key: "placedBlocks", label: "設置", description: "設置したブロック数" },
-    { key: "harvestedCrops", label: "収穫", description: "収穫した作物数" },
-    { key: "fishCaught", label: "釣り", description: "期間中に釣り上げた魚の数", unit: "匹" },
-    { key: "biomes", label: "バイオーム", description: "訪れたバイオーム数" },
-    { key: "points", label: "進捗ポイント", description: "期間中に獲得した進捗ポイント" },
-    { key: "combatMobKills", label: "Mob討伐", description: "トラップと短時間の異常増加を除外した推定討伐数", unit: "体" },
-    { key: "baseRate", label: "拠点依存率", description: "拠点周辺にいた割合", format: "percent" },
-    { key: "expeditionRate", label: "遠征生活率", description: "拠点から5,000ブロック以上、または異世界にいた割合", format: "percent" },
-    { key: "undergroundRate", label: "地下生活率", description: "オーバーワールドのY50未満にいた割合", format: "percent" },
-    { key: "combatTimeRate", label: "戦闘時間率", description: "本人の討伐・死亡が増えた時間の割合。拠点、トラップ、異常増加は除外", format: "percent" },
-    { key: "soloRate", label: "ひとり時間率", description: "256ブロック以内にほかの対象者がいなかった割合", format: "percent" },
-    { key: "crowdAverage", label: "にぎやか中心度", description: "100ブロック以内にいた対象者の平均人数", format: "average" },
-    { key: "metRate10h", label: "出会いペース", description: "100ブロック以内へ近づいた異なる人数を10時間あたりで比較" },
-    { key: "deathRate10h", label: "死亡ペース", description: "プレイ時間の差をならした10時間あたりの死亡回数" },
+  const rankingGroups = [
+    {
+      key: "overall",
+      label: "総合",
+      categories: [
+        { key: "playSeconds", label: "プレイ時間", description: "この期間にサーバーで過ごした時間" },
+        { key: "distanceCm", label: "移動距離", description: "歩行・飛行などを含む総移動距離" },
+        { key: "points", label: "進捗ポイント", description: "期間中に獲得した進捗ポイント" },
+        { key: "biomes", label: "バイオーム", description: "訪れたバイオーム数" },
+      ],
+    },
+    {
+      key: "combat",
+      label: "冒険・戦闘",
+      categories: [
+        { key: "combatMobKills", label: "Mob討伐", description: "トラップと短時間の異常増加を除外した推定討伐数", unit: "体" },
+        { key: "deaths", label: "死亡回数", description: "期間中の死亡回数", unit: "回" },
+        { key: "deathRate10h", label: "死亡ペース", description: "プレイ時間の差をならした10時間あたりの死亡回数" },
+      ],
+    },
+    {
+      key: "building",
+      label: "建築・採集",
+      categories: [
+        { key: "minedBlocks", label: "採掘", description: "採掘したブロック数" },
+        { key: "placedBlocks", label: "設置", description: "設置したブロック数" },
+        { key: "harvestedCrops", label: "収穫", description: "収穫した作物数" },
+        { key: "logsChopped", label: "伐採", description: "伐採した原木数" },
+        { key: "fishCaught", label: "釣り", description: "期間中に釣り上げた魚の数", unit: "匹" },
+      ],
+    },
+    {
+      key: "stay",
+      label: "滞在",
+      categories: [
+        { key: "baseSeconds", label: "拠点滞在時間", description: "総プレイ時間と拠点依存率から出した推定時間", format: "estimatedDuration" },
+        { key: "baseRate", label: "拠点依存率", description: "拠点周辺にいた割合", format: "percent" },
+        { key: "expeditionSeconds", label: "遠征時間", description: "総プレイ時間と遠征生活率から出した推定時間", format: "estimatedDuration" },
+        { key: "expeditionRate", label: "遠征生活率", description: "拠点から5,000ブロック以上、または異世界にいた割合", format: "percent" },
+        { key: "undergroundSeconds", label: "地下滞在時間", description: "総プレイ時間と地下生活率から出した推定時間", format: "estimatedDuration" },
+        { key: "undergroundRate", label: "地下生活率", description: "オーバーワールドのY50未満にいた割合", format: "percent" },
+        { key: "soloSeconds", label: "ひとり時間", description: "総プレイ時間とひとり時間率から出した推定時間", format: "estimatedDuration" },
+        { key: "soloRate", label: "ひとり時間率", description: "256ブロック以内にほかの対象者がいなかった割合", format: "percent" },
+      ],
+    },
+    {
+      key: "social",
+      label: "交流",
+      categories: [
+        { key: "metRate10h", label: "出会いペース", description: "100ブロック以内へ近づいた異なる人数を10時間あたりで比較" },
+        { key: "crowdAverage", label: "にぎやか中心度", description: "100ブロック以内にいた対象者の平均人数", format: "average" },
+      ],
+    },
   ];
-
   const getRanking = (key) =>
     [...data.players].sort((a, b) => (b[key] || 0) - (a[key] || 0) || a.name.localeCompare(b.name));
 
@@ -201,9 +234,12 @@
     });
   };
 
+  let activeRankingGroup = "overall";
   let activeRanking = "playSeconds";
   const renderRankings = () => {
-    const category = rankingCategories.find((item) => item.key === activeRanking) || rankingCategories[0];
+    const group = rankingGroups.find((item) => item.key === activeRankingGroup) || rankingGroups[0];
+    const category = group.categories.find((item) => item.key === activeRanking) || group.categories[0];
+    activeRanking = category.key;
     const ranking = getRanking(category.key);
     const maximum = Math.max(ranking[0]?.[category.key] || 0, 1);
     views.rankings.innerHTML = `
@@ -213,8 +249,14 @@
         <p class="lead">${esc(category.description)}。</p>
       </header>
       <div class="toolbar">
-        <div class="category-tabs" role="tablist" aria-label="ランキングの種類">
-          ${rankingCategories.map((item) => `
+        <div class="ranking-group-tabs" role="tablist" aria-label="ランキングのカテゴリ">
+          ${rankingGroups.map((item) => `
+            <button type="button" role="tab" aria-selected="${item.key === group.key}" class="${item.key === group.key ? "active" : ""}" data-ranking-group="${item.key}">
+              ${esc(item.label)}
+            </button>`).join("")}
+        </div>
+        <div class="category-tabs" role="tablist" aria-label="${esc(group.label)}のランキング項目">
+          ${group.categories.map((item) => `
             <button type="button" role="tab" aria-selected="${item.key === category.key}" class="${item.key === category.key ? "active" : ""}" data-category="${item.key}">
               ${esc(item.label)}
             </button>`).join("")}
@@ -230,8 +272,17 @@
             <span class="rank-value">${formatValue(player, category)}</span>
           </div>`).join("")}
       </div>
+      ${category.format === "estimatedDuration" ? `<div class="notice">約15分間隔の位置記録から出した割合を総プレイ時間へ当てはめた推定時間です。</div>` : ""}
       ${category.key === "combatMobKills" ? `<div class="notice">確認済みのトラップ地域に触れた区間と、短時間に異常な増加があった区間を除いた推定値です。約15分間隔の位置記録を使うため、完全な個別キル記録ではありません。</div>` : ""}`;
 
+    views.rankings.querySelectorAll("[data-ranking-group]").forEach((button) => {
+      button.addEventListener("click", () => {
+        activeRankingGroup = button.dataset.rankingGroup;
+        const nextGroup = rankingGroups.find((item) => item.key === activeRankingGroup);
+        activeRanking = nextGroup?.categories[0]?.key || "playSeconds";
+        renderRankings();
+      });
+    });
     views.rankings.querySelectorAll("[data-category]").forEach((button) => {
       button.addEventListener("click", () => {
         activeRanking = button.dataset.category;
@@ -400,7 +451,7 @@
   const renderStory = (player) => {
     const normalRate = Math.max(0, 100 - player.baseRate - player.expeditionRate);
     const pairText = player.bestPair
-      ? `${esc(player.bestPair.partner_name)} / 同行度 ${Number(player.bestPair.score).toFixed(0)}%`
+      ? `${esc(player.bestPair.partner_name)} / 相性度 ${Number(player.bestPair.score).toFixed(0)}%`
       : "該当なし";
     return `
     <article class="panel">
@@ -418,17 +469,20 @@
         <span><i style="background:#d47b3f"></i>遠征 ${player.expeditionRate}%</span>
       </div>
       <div class="detail-grid section-block">
+        <div class="detail-item"><span>拠点滞在時間</span><strong>約${formatDuration(player.baseSeconds, true)}</strong></div>
         <div class="detail-item"><span>拠点依存率</span><strong>${player.baseRate}%</strong></div>
+        <div class="detail-item"><span>遠征時間</span><strong>約${formatDuration(player.expeditionSeconds, true)}</strong></div>
         <div class="detail-item"><span>遠征生活率</span><strong>${player.expeditionRate}%</strong></div>
+        <div class="detail-item"><span>地下滞在時間</span><strong>約${formatDuration(player.undergroundSeconds, true)}</strong></div>
         <div class="detail-item"><span>地下生活率</span><strong>${player.undergroundRate}%</strong></div>
-        <div class="detail-item"><span>戦闘時間率</span><strong>${player.combatTimeRate}%</strong></div>
+        <div class="detail-item"><span>ひとり時間</span><strong>約${formatDuration(player.soloSeconds, true)}</strong></div>
         <div class="detail-item"><span>ひとり時間率</span><strong>${player.soloRate}%</strong></div>
         <div class="detail-item"><span>近くにいた平均人数</span><strong>${Number(player.crowdAverage).toFixed(2)}人</strong></div>
         <div class="detail-item"><span>出会いペース</span><strong>${formatMeetingPace(player)}</strong></div>
         <div class="detail-item"><span>観測したチャンク</span><strong>${number.format(player.observedChunks)}</strong></div>
         <div class="detail-item"><span>ベストパートナー</span><strong>${pairText}</strong></div>
       </div>
-      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。戦闘時間率は本人の討伐・死亡が増えた時間だけを数え、拠点・トラップ・異常増加を除外しています。ベストパートナーは${number.format(data.analytics.pairMinCloseHours)}時間以上近くにいた相手から選び、近いほど強く、拠点内は半分、拠点外で続いた同行は強めに評価します。</p>
+      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。滞在時間は約15分間隔の位置記録から出した割合を総プレイ時間へ当てはめた推定です。ベストパートナーは${number.format(data.analytics.pairMinCloseHours)}時間以上近くにいた相手から選び、近いほど強く、拠点内は半分、拠点外で続いた同行は強めに評価します。</p>
     </article>`;
   };
 
