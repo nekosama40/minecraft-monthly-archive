@@ -208,6 +208,12 @@ h3 {
   color: #9ed6a1;
 }
 
+.hero h1 span {
+  color: #a9dda9;
+  font-size: .7em;
+  letter-spacing: -.025em;
+}
+
 .hero .lead {
   position: relative;
   z-index: 1;
@@ -304,6 +310,60 @@ h3 {
   font-size: 11px;
 }
 
+.distance-card strong {
+  font-size: clamp(17px, 2vw, 25px);
+  line-height: 1.25;
+}
+
+.portal-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 18px;
+}
+
+.portal-card {
+  position: relative;
+  min-height: 148px;
+  display: flex;
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 22px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  transition: transform .18s ease, border-color .18s ease;
+}
+
+.portal-card:hover {
+  transform: translateY(-3px);
+  border-color: #9cbda8;
+}
+
+.portal-card > span {
+  position: absolute;
+  top: 15px;
+  right: 18px;
+  color: var(--green-soft);
+  font-size: 44px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.portal-card strong {
+  color: var(--green-dark);
+  font-size: 21px;
+}
+
+.portal-card small {
+  margin-top: 7px;
+  color: var(--muted);
+}
+
 .overview-grid {
   display: grid;
   grid-template-columns: 1.2fr .8fr;
@@ -395,6 +455,48 @@ h3 {
 .spotlight small {
   margin-top: 3px;
   color: var(--muted);
+}
+
+.duo-panel {
+  margin-top: 18px;
+}
+
+.duo-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.duo-row {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 13px;
+  background: var(--surface-soft);
+}
+
+.duo-row b,
+.duo-row small {
+  display: block;
+}
+
+.duo-row b {
+  overflow-wrap: anywhere;
+}
+
+.duo-row small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+
+.duo-row > strong {
+  color: var(--green-dark);
+  white-space: nowrap;
 }
 
 .notice {
@@ -614,7 +716,8 @@ h3 {
   display: block;
   margin-top: 4px;
   color: var(--green-dark);
-  font-size: 16px;
+  font-size: clamp(13px, 1.2vw, 16px);
+  overflow-wrap: anywhere;
 }
 
 .tag {
@@ -742,6 +845,16 @@ h3 {
 .detail-item strong {
   margin-top: 6px;
   font-size: 19px;
+  overflow-wrap: anywhere;
+}
+
+.metric-note {
+  margin: 20px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
 }
 
 .share-bar {
@@ -889,7 +1002,9 @@ h3 {
 
 @media (max-width: 960px) {
   .summary-grid,
-  .players-grid {
+  .players-grid,
+  .portal-grid,
+  .duo-list {
     grid-template-columns: repeat(2, 1fr);
   }
 
@@ -953,6 +1068,8 @@ h3 {
 
   .summary-grid,
   .players-grid,
+  .portal-grid,
+  .duo-list,
   .building-grid,
   .detail-grid {
     grid-template-columns: 1fr;

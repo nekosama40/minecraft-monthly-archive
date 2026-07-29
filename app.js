@@ -35,16 +35,23 @@
     return `${number.format(hours)}時間 ${remain}分`;
   };
 
+  const distanceParts = (centimeters) => {
+    const blocks = Math.round(Number(centimeters || 0) / 100);
+    const chunks = Math.round(blocks / 16);
+    return { blocks, chunks };
+  };
+
   const formatDistance = (centimeters) => {
-    const kilometers = Number(centimeters || 0) / 100000;
-    return kilometers >= 1000
-      ? `${number.format(Math.round(kilometers))} km`
-      : `${kilometers.toLocaleString("ja-JP", { maximumFractionDigits: 1 })} km`;
+    const { blocks, chunks } = distanceParts(centimeters);
+    return `${number.format(blocks)}ブロック（約${number.format(chunks)}チャンク分）`;
   };
 
   const formatValue = (player, category) => {
     if (category.key === "playSeconds") return formatDuration(player.playSeconds, true);
     if (category.key === "distanceCm") return formatDistance(player.distanceCm);
+    if (category.format === "percent") return `${Number(player[category.key] || 0).toFixed(1)}%`;
+    if (category.format === "average") return `平均${Number(player[category.key] || 0).toFixed(2)}人`;
+    if (category.format === "deathRate") return `${Number(player[category.key] || 0).toFixed(1)}回 / 10h`;
     return `${number.format(player[category.key] || 0)}${category.unit || ""}`;
   };
 
@@ -58,8 +65,16 @@
     { key: "placedBlocks", label: "設置", description: "設置したブロック数" },
     { key: "harvestedCrops", label: "収穫", description: "収穫した作物数" },
     { key: "biomes", label: "バイオーム", description: "訪れたバイオーム数" },
-    { key: "points", label: "進捗ポイント", description: "集計中の進捗ポイント" },
-    { key: "mobKills", label: "Mob討伐（参考）", description: "トラップタワーの影響を含むため参考値" },
+    { key: "points", label: "進捗ポイント", description: "期間中に獲得した進捗ポイント" },
+    { key: "combatMobKills", label: "Mob討伐", description: "3か所のトラップ地域を除外した推定討伐数", unit: "体" },
+    { key: "baseRate", label: "拠点依存率", description: "拠点から512ブロック以内にいた割合", format: "percent" },
+    { key: "expeditionRate", label: "遠征生活率", description: "拠点から5,000ブロック以上、または異世界にいた割合", format: "percent" },
+    { key: "undergroundRate", label: "地下生活率", description: "オーバーワールドのY50未満にいた割合", format: "percent" },
+    { key: "dangerRate", label: "危険地帯", description: "トラップを除く戦闘・死亡が観測された地域にいた割合", format: "percent" },
+    { key: "soloRate", label: "ひとり時間率", description: "256ブロック以内にほかの対象者がいなかった割合", format: "percent" },
+    { key: "crowdAverage", label: "にぎやか中心度", description: "100ブロック以内にいた対象者の平均人数", format: "average" },
+    { key: "metCount", label: "出会った人数", description: "実際に100ブロック以内へ近づいた異なる人数", unit: "人" },
+    { key: "deathRate10h", label: "死亡ペース", description: "プレイ時間の差をならした10時間あたりの死亡回数", format: "deathRate" },
   ];
 
   const getRanking = (key) =>
@@ -72,6 +87,7 @@
   };
 
   const renderOverview = () => {
+    const totalDistance = distanceParts(data.summary.distanceCm);
     const topTime = getRanking("playSeconds")[0];
     const topTravel = getRanking("distanceCm")[0];
     const topBuild = getRanking("placedBlocks")[0];
@@ -93,30 +109,30 @@
     views.overview.innerHTML = `
       <div class="hero">
         <p class="eyebrow">One-Month Server Archive</p>
-        <h1 id="overview-title">1か月だけ存在した<br>この世界の記録</h1>
+        <h1 id="overview-title">ねこさま Server<br><span>Minecraft Monthly</span></h1>
         <p class="lead">期間限定サーバーで誰がどんな時間を過ごしたのかを、探索・建築・生活のバランスとともに残した記録です。</p>
         <div class="hero-meta">
-          <span class="pill">${esc(data.period.label)}</span>
-          <span class="pill">${number.format(data.summary.playerCount)}人が参加</span>
-          <span class="pill">${esc(data.snapshot.label)}</span>
+          <span class="pill">${esc(data.period.range)}</span>
+          <span class="pill">${number.format(data.summary.participantCount)}人が参加</span>
+          <span class="pill">分析対象 ${number.format(data.summary.eligibleCount)}人</span>
         </div>
       </div>
 
       <div class="summary-grid" aria-label="サーバー全体の集計">
         <article class="summary-card">
-          <span>参加プレイヤー</span>
-          <strong>${number.format(data.summary.playerCount)}人</strong>
-          <small>集計対象になったユニーク人数</small>
+          <span>ユニーク参加者</span>
+          <strong>${number.format(data.summary.participantCount)}人</strong>
+          <small>ランキング・分析は5時間以上の${number.format(data.summary.eligibleCount)}人</small>
         </article>
         <article class="summary-card">
-          <span>みんなのプレイ時間</span>
+          <span>分析対象のプレイ時間</span>
           <strong>${formatDuration(data.summary.playSeconds, true)}</strong>
-          <small>全プレイヤーの合計</small>
+          <small>5時間以上プレイした人の合計</small>
         </article>
-        <article class="summary-card">
+        <article class="summary-card distance-card">
           <span>世界を移動した距離</span>
-          <strong>${formatDistance(data.summary.distanceCm)}</strong>
-          <small>徒歩・飛行などを含む総距離</small>
+          <strong>${number.format(totalDistance.blocks)}ブロック</strong>
+          <small>約${number.format(totalDistance.chunks)}チャンク分（16ブロック換算）</small>
         </article>
         <article class="summary-card">
           <span>置かれたブロック</span>
@@ -124,6 +140,18 @@
           <small>建築規模を見るための参考値</small>
         </article>
       </div>
+
+      <nav class="portal-grid" aria-label="詳しい記録を見る">
+        <a class="portal-card" href="#rankings">
+          <span>01</span><strong>ランキング</strong><small>いろいろな角度から順位を見る</small>
+        </a>
+        <a class="portal-card" href="#players">
+          <span>02</span><strong>プレイヤー図鑑</strong><small>二つ名とプレイスタイルを見る</small>
+        </a>
+        <a class="portal-card" href="#buildings">
+          <span>03</span><strong>建造物</strong><small>この世界に残ったものを見る</small>
+        </a>
+      </nav>
 
       <section class="section-block">
         <div class="section-heading">
@@ -156,7 +184,23 @@
             </div>
           </article>
         </div>
-        <div class="notice"><strong>Mob討伐数について：</strong> トラップタワーの利用で大きく伸びるため、プレイスタイルのレーダーには使っていません。ランキングでは参考値として分けて表示します。</div>
+        ${data.pairs?.length ? `
+          <article class="panel duo-panel">
+            <p class="eyebrow">Best Duo</p>
+            <h3>今月の名コンビ</h3>
+            <div class="duo-list">
+              ${data.pairs.slice(0, 3).map((pair, index) => `
+                <div class="duo-row">
+                  <span class="rank-number">${index + 1}</span>
+                  <div>
+                    <b>${esc(pair.leftName)} × ${esc(pair.rightName)}</b>
+                    <small>同時観測 約${pair.sharedHours}時間 / 100ブロック以内 ${pair.closeRate}%</small>
+                  </div>
+                  <strong>${Math.round(pair.score)}点</strong>
+                </div>`).join("")}
+            </div>
+          </article>` : ""}
+        <div class="notice"><strong>位置・戦闘指標について：</strong> 約15分間隔の記録から推定しています。Mob討伐数は確認済みの3か所のトラップ地域を除外しています。</div>
       </section>`;
 
     views.overview.querySelectorAll("[data-player]").forEach((button) => {
@@ -173,7 +217,7 @@
       <header class="page-title">
         <p class="eyebrow">Rankings</p>
         <h1 id="rankings-title">ランキング</h1>
-        <p class="lead">${esc(category.description)}。名前を選ぶと、その人のプロフィールを見られます。</p>
+        <p class="lead">${esc(category.description)}。5時間以上プレイした${number.format(data.summary.eligibleCount)}人が対象です。</p>
       </header>
       <div class="toolbar">
         <div class="category-tabs" role="tablist" aria-label="ランキングの種類">
@@ -193,7 +237,7 @@
             <span class="rank-value">${formatValue(player, category)}</span>
           </div>`).join("")}
       </div>
-      ${category.key === "mobKills" ? `<div class="notice">トラップタワー内の討伐も合算されています。この順位だけで戦闘スタイルを判断しない想定です。</div>` : ""}`;
+      ${category.key === "combatMobKills" ? `<div class="notice">確認済みの3か所のトラップ地域で増えた討伐数を除いた推定値です。約15分間隔の位置記録を使うため、完全な個別キル記録ではありません。</div>` : ""}`;
 
     views.rankings.querySelectorAll("[data-category]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -206,11 +250,7 @@
 
   let playerSearch = "";
   let playerSort = "playSeconds";
-  const playerTag = (player) => {
-    const axes = Object.entries(player.radar);
-    const best = axes.sort((a, b) => b[1] - a[1])[0]?.[0] || "活動量";
-    return `${best}タイプ`;
-  };
+  const playerTag = (player) => player.title || "この世界の住人";
 
   const renderPlayers = () => {
     const query = playerSearch.trim().toLocaleLowerCase("ja");
@@ -221,7 +261,7 @@
       <header class="page-title">
         <p class="eyebrow">Players</p>
         <h1 id="players-title">プレイヤー</h1>
-        <p class="lead">スキンと活動データから、全員の「この1か月の遊び方」を見られます。</p>
+        <p class="lead">5時間以上遊んだ${number.format(data.summary.eligibleCount)}人の、二つ名と「この1か月の遊び方」を見られます。</p>
       </header>
       <div class="search-row">
         <input class="search-input" type="search" value="${esc(playerSearch)}" placeholder="プレイヤー名で検索" aria-label="プレイヤー名で検索">
@@ -245,7 +285,7 @@
               </div>
               <div class="player-card-stats">
                 <span>プレイ時間<strong>${formatDuration(player.playSeconds, true)}</strong></span>
-                <span>移動距離<strong>${formatDistance(player.distanceCm)}</strong></span>
+                <span>${esc(player.highlight?.label || "特徴")}<strong>${esc(player.highlight?.value || "—")}</strong></span>
               </div>
             </article>`).join("")}
         </div>` : `<div class="empty">「${esc(playerSearch)}」に一致するプレイヤーはいません。</div>`}`;
@@ -285,6 +325,7 @@
           const [x, y] = point(index, 1);
           return `<line x1="${center}" y1="${center}" x2="${x}" y2="${y}" stroke="#d9e0da" stroke-width="1"/>`;
         }).join("")}
+        <polygon points="${points(.5)}" fill="none" stroke="#d5a72d" stroke-width="2" stroke-dasharray="5 5"/>
         <polygon points="${valuePoints}" fill="rgba(46,117,82,.25)" stroke="#2e7552" stroke-width="3"/>
         ${values.map((value, index) => {
           const [x, y] = point(index, Math.max(0, Math.min(100, value)) / 100);
@@ -295,6 +336,7 @@
           const anchor = x < center - 10 ? "end" : x > center + 10 ? "start" : "middle";
           return `<text x="${x}" y="${y}" text-anchor="${anchor}" dominant-baseline="middle" fill="#59675f" font-size="12" font-weight="700">${esc(label)}</text>`;
         }).join("")}
+        <text x="170" y="327" text-anchor="middle" fill="#9a7620" font-size="10">黄色の点線＝サーバー中央値</text>
       </svg>`;
   };
 
@@ -302,7 +344,7 @@
     const axes = Object.entries(player.radar).sort((a, b) => b[1] - a[1]);
     const first = axes[0]?.[0] || "活動量";
     const second = axes[1]?.[0] || "探索";
-    return `この1か月の ${player.name} は、特に「${first}」が際立つプレイスタイルでした。「${second}」も高く、${formatDuration(player.playSeconds, true)}の中で ${formatDistance(player.distanceCm)} を移動しています。`;
+    return `「${player.title}」。特に「${first}」と「${second}」が目立つプレイスタイルです。${player.highlight.label}は${player.highlight.value}でした。`;
   };
 
   const renderPlayer = (id) => {
@@ -322,7 +364,8 @@
       ["釣り", number.format(player.fishCaught)],
       ["進捗ポイント", number.format(player.points)],
       ["死亡回数", number.format(player.deaths)],
-      ["Mob討伐（参考）", number.format(player.mobKills)],
+      ["10時間あたり死亡", `${Number(player.deathRate10h).toFixed(1)}回`],
+      ["Mob討伐（トラップ除外推定）", number.format(player.combatMobKills)],
     ];
     views.player.innerHTML = `
       <button class="back-button" type="button" data-back>← プレイヤー一覧</button>
@@ -361,8 +404,8 @@
               ${details.map(([label, value]) => `<div class="detail-item"><span>${label}</span><strong>${value}</strong></div>`).join("")}
             </div>
           </article>
-          ${player.extra ? renderExtra(player.extra) : ""}
-          <div class="notice">レーダーは参加者内での相対値です。Mob討伐数はトラップタワーの影響が大きいため計算から除外しています。</div>
+          ${renderStory(player)}
+          <div class="notice">レーダーは5時間以上遊んだ人の10時間あたり行動量を中心に比較し、黄色の点線を中央値としています。位置・交流・戦闘は約15分間隔の記録からの推定です。</div>
         </div>
       </div>`;
     views.player.querySelector("[data-back]").addEventListener("click", () => {
@@ -370,36 +413,46 @@
     });
   };
 
-  const renderExtra = (extra) => `
+  const renderStory = (player) => {
+    const normalRate = Math.max(0, 100 - player.baseRate - player.expeditionRate);
+    const pairText = player.bestPair
+      ? `${esc(player.bestPair.partner_name)} / ${Number(player.bestPair.score).toFixed(0)}点`
+      : "該当なし";
+    return `
     <article class="panel">
-      <p class="eyebrow">Location Story — Detailed Sample</p>
-      <h2>居場所から見える過ごし方</h2>
-      <p class="lead">位置履歴まで使えるプレイヤーの詳細表示例です。拠点周辺・通常探索・特殊行動の滞在比率を一つの物語として見せます。</p>
+      <p class="eyebrow">Location & Social Story</p>
+      <h2>居場所とつながり</h2>
+      <p class="lead">約15分間隔の位置記録から、拠点・遠征・地下での過ごし方と、ほかのプレイヤーとの距離を読み解きました。</p>
       <div class="share-bar" aria-label="場所別の滞在割合">
-        <span style="width:${extra.locationShares.base}%"></span>
-        <span style="width:${extra.locationShares.exploration}%"></span>
-        <span style="width:${extra.locationShares.special}%"></span>
+        <span style="width:${player.baseRate}%"></span>
+        <span style="width:${normalRate}%"></span>
+        <span style="width:${player.expeditionRate}%"></span>
       </div>
       <div class="share-labels">
-        <span><i style="background:#2e7552"></i>拠点周辺 ${extra.locationShares.base}%</span>
-        <span><i style="background:#65b8b1"></i>通常探索 ${extra.locationShares.exploration}%</span>
-        <span><i style="background:#d47b3f"></i>特殊行動地点 ${extra.locationShares.special}%</span>
+        <span><i style="background:#2e7552"></i>拠点周辺 ${player.baseRate}%</span>
+        <span><i style="background:#65b8b1"></i>通常圏 ${normalRate.toFixed(1)}%</span>
+        <span><i style="background:#d47b3f"></i>遠征 ${player.expeditionRate}%</span>
       </div>
       <div class="detail-grid section-block">
-        <div class="detail-item"><span>オーバーワールド</span><strong>${extra.dimensions.overworld}%</strong></div>
-        <div class="detail-item"><span>ネザー</span><strong>${extra.dimensions.nether}%</strong></div>
-        <div class="detail-item"><span>エンド</span><strong>${extra.dimensions.end}%</strong></div>
-        <div class="detail-item"><span>観測した区画</span><strong>${number.format(extra.observedChunks)}</strong></div>
-        <div class="detail-item"><span>行動半径 R80</span><strong>${number.format(extra.radius80)} m</strong></div>
-        <div class="detail-item"><span>特殊地点での討伐割合</span><strong>${extra.specialKillShare}%</strong></div>
+        <div class="detail-item"><span>拠点依存率</span><strong>${player.baseRate}%</strong></div>
+        <div class="detail-item"><span>遠征生活率</span><strong>${player.expeditionRate}%</strong></div>
+        <div class="detail-item"><span>地下生活率</span><strong>${player.undergroundRate}%</strong></div>
+        <div class="detail-item"><span>危険地帯滞在率</span><strong>${player.dangerRate}%</strong></div>
+        <div class="detail-item"><span>ひとり時間率</span><strong>${player.soloRate}%</strong></div>
+        <div class="detail-item"><span>近くにいた平均人数</span><strong>${Number(player.crowdAverage).toFixed(2)}人</strong></div>
+        <div class="detail-item"><span>出会った人数</span><strong>${number.format(player.metCount)}人</strong></div>
+        <div class="detail-item"><span>観測したチャンク</span><strong>${number.format(player.observedChunks)}</strong></div>
+        <div class="detail-item"><span>名コンビ</span><strong>${pairText}</strong></div>
       </div>
+      <p class="metric-note">拠点は半径${number.format(data.analytics.baseRadius)}ブロック、遠征は${number.format(data.analytics.expeditionRadius)}ブロック以上またはネザー・エンド、地下はオーバーワールドY${data.analytics.undergroundY}未満です。</p>
     </article>`;
+  };
 
   const renderBuildings = () => {
     views.buildings.innerHTML = `
       <header class="page-title">
         <p class="eyebrow">Buildings</p>
-        <h1 id="buildings-title">建築物</h1>
+        <h1 id="buildings-title">建造物</h1>
         <p class="lead">完成後は、建築写真・作者・場所・ひとことをまとめたギャラリーにできます。現在の集計表に建築情報がないため、下はレイアウトの表示例です。</p>
       </header>
       <div class="building-intro">
@@ -410,7 +463,7 @@
         <article class="panel">
           <h3>追加時にほしい情報</h3>
           <div class="field-list">
-            <span>建築名</span><span>スクリーンショット</span><span>作者</span><span>座標</span><span>完成日</span><span>紹介文</span>
+            <span>建築名</span><span>スクリーンショット</span><span>作者</span><span>エリア名</span><span>完成日</span><span>紹介文</span>
           </div>
         </article>
       </div>
@@ -465,7 +518,7 @@
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
-  document.querySelector("#updated-at").textContent = `データ更新：${data.snapshot.displayDate}`;
+  document.querySelector("#updated-at").textContent = `データ取得：${data.snapshot.displayDate}`;
   window.addEventListener("hashchange", route);
   route();
 })();
