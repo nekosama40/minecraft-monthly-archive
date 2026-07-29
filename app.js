@@ -78,8 +78,8 @@
     { key: "fishCaught", label: "釣り", description: "期間中に釣り上げた魚の数", unit: "匹" },
     { key: "biomes", label: "バイオーム", description: "訪れたバイオーム数" },
     { key: "points", label: "進捗ポイント", description: "期間中に獲得した進捗ポイント" },
-    { key: "combatMobKills", label: "Mob討伐", description: "3か所のトラップ地域を除外した推定討伐数", unit: "体" },
-    { key: "baseRate", label: "拠点依存率", description: "拠点から800ブロック以内にいた割合", format: "percent" },
+    { key: "combatMobKills", label: "Mob討伐", description: "トラップと短時間の異常増加を除外した推定討伐数", unit: "体" },
+    { key: "baseRate", label: "拠点依存率", description: "拠点周辺にいた割合", format: "percent" },
     { key: "expeditionRate", label: "遠征生活率", description: "拠点から5,000ブロック以上、または異世界にいた割合", format: "percent" },
     { key: "undergroundRate", label: "地下生活率", description: "オーバーワールドのY50未満にいた割合", format: "percent" },
     { key: "dangerRate", label: "危険地帯", description: "拠点とトラップを除き、戦闘・死亡が観測された地域にいた割合", format: "percent" },
@@ -195,7 +195,7 @@
             </div>
           </article>
         </div>
-        <div class="notice"><strong>位置・戦闘指標について：</strong> 約15分間隔の記録から推定しています。Mob討伐数は確認済みの3か所のトラップ地域を除外しています。</div>
+        <div class="notice"><strong>位置・戦闘指標について：</strong> 約15分間隔の記録から推定しています。Mob討伐数はトラップ地域と短時間の異常増加を除外しています。</div>
       </section>`;
 
     views.overview.querySelectorAll("[data-player]").forEach((button) => {
@@ -232,7 +232,7 @@
             <span class="rank-value">${formatValue(player, category)}</span>
           </div>`).join("")}
       </div>
-      ${category.key === "combatMobKills" ? `<div class="notice">確認済みの3か所のトラップ地域で増えた討伐数を除いた推定値です。約15分間隔の位置記録を使うため、完全な個別キル記録ではありません。</div>` : ""}`;
+      ${category.key === "combatMobKills" ? `<div class="notice">確認済みのトラップ地域に触れた区間と、短時間に異常な増加があった区間を除いた推定値です。約15分間隔の位置記録を使うため、完全な個別キル記録ではありません。</div>` : ""}`;
 
     views.rankings.querySelectorAll("[data-category]").forEach((button) => {
       button.addEventListener("click", () => {
@@ -355,7 +355,7 @@
       ["進捗ポイント", number.format(player.points)],
       ["死亡回数", number.format(player.deaths)],
       ["死亡ペース", formatDeathPace(player)],
-      ["Mob討伐（トラップ除外推定）", number.format(player.combatMobKills)],
+      ["Mob討伐（トラップ・異常増加除外）", number.format(player.combatMobKills)],
     ];
     views.player.innerHTML = `
       <button class="back-button" type="button" data-back>← プレイヤー一覧</button>
@@ -381,7 +381,6 @@
                  <strong>${esc(playerTag(player))}</strong>
                </div>
                <p class="style-story">${esc(player.styleText || "この世界での行動から、あなたらしい遊び方を読み解きました。")}</p>
-               <p class="style-evidence">際立った記録：${esc(player.highlight?.label || "特徴")} ${esc(player.highlight?.value || "—")}</p>
              </article>
           </div>
           <article class="panel">
