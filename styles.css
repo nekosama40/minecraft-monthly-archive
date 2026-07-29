@@ -564,13 +564,25 @@ h3 {
   cursor: pointer;
 }
 
-.category-tabs button:hover,
-.category-tabs button.active,
-.ghost-button:hover,
-.back-button:hover {
+.category-tabs button.active {
   color: #fff;
   border-color: var(--green);
   background: var(--green);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .category-tabs button:hover:not(.active) {
+    color: var(--green);
+    border-color: var(--green);
+    background: var(--green-soft);
+  }
+
+  .ghost-button:hover,
+  .back-button:hover {
+    color: #fff;
+    border-color: var(--green);
+    background: var(--green);
+  }
 }
 
 .ranking-list {
