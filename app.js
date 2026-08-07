@@ -7,7 +7,6 @@
     rankings: document.querySelector("#rankings-view"),
     players: document.querySelector("#players-view"),
     player: document.querySelector("#player-view"),
-    buildings: document.querySelector("#buildings-view"),
   };
 
   if (!data || !Array.isArray(data.players)) {
@@ -181,9 +180,6 @@
         </a>
         <a class="portal-card" href="#players">
           <span>02</span><strong>プレイヤー図鑑</strong><small>二つ名とプレイスタイルを見る</small><em>図鑑を見る <b>→</b></em>
-        </a>
-        <a class="portal-card" href="#buildings">
-          <span>03</span><strong>建造物</strong><small>この世界に残ったものを見る</small><em>建造物を見る <b>→</b></em>
         </a>
       </nav>
 
@@ -478,42 +474,6 @@
     </article>`;
   };
 
-  const renderBuildings = () => {
-    views.buildings.innerHTML = `
-      <header class="page-title">
-        <p class="eyebrow">Buildings</p>
-        <h1 id="buildings-title">建造物</h1>
-        <p class="lead">完成後は、建築写真・作者・場所・ひとことをまとめたギャラリーにできます。現在の集計表に建築情報がないため、下はレイアウトの表示例です。</p>
-      </header>
-      <div class="building-intro">
-        <article class="panel">
-          <h2>建築も「この1か月の物語」に</h2>
-          <p class="lead">数値だけでは残りにくい共同建築やお気に入りの場所を、発表の最後に一覧で見せる想定です。スクリーンショットがあれば、そのままカードの大きな画像に差し替えられます。</p>
-        </article>
-        <article class="panel">
-          <h3>追加時にほしい情報</h3>
-          <div class="field-list">
-            <span>建築名</span><span>スクリーンショット</span><span>作者</span><span>エリア名</span><span>完成日</span><span>紹介文</span>
-          </div>
-        </article>
-      </div>
-      <div class="building-grid">
-        ${data.buildings.map((building) => `
-          <article class="building-card">
-            <div class="building-image ${esc(building.theme)}">
-              <span class="demo-badge">表示例</span>
-            </div>
-            <div class="building-body">
-              <span class="tag">${esc(building.type)}</span>
-              <h3>${esc(building.name)}</h3>
-              <p>${esc(building.description)}</p>
-              <div class="field-list"><span>作者：${esc(building.author)}</span><span>場所：${esc(building.location)}</span></div>
-            </div>
-          </article>`).join("")}
-      </div>
-      <div class="notice">ここに表示している建築名・作者・場所はすべて表示例です。実際の建築データをいただいた段階で差し替えます。</div>`;
-  };
-
   const bindPlayerLinks = (container) => {
     container.querySelectorAll("[data-player]").forEach((element) => {
       const open = () => {
@@ -544,7 +504,6 @@
     if (activeView === "rankings") renderRankings();
     if (activeView === "players") renderPlayers();
     if (activeView === "player") renderPlayer(decodeURIComponent(value || ""));
-    if (activeView === "buildings") renderBuildings();
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 

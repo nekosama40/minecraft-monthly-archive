@@ -276,8 +276,7 @@ h3 {
 
 .summary-card,
 .panel,
-.player-card,
-.building-card {
+.player-card {
   background: var(--surface);
   border: 1px solid var(--line);
   box-shadow: var(--shadow);
@@ -318,7 +317,7 @@ h3 {
 
 .portal-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   margin-top: 18px;
 }
@@ -1012,97 +1011,6 @@ h3 {
   border-radius: 2px;
 }
 
-.building-intro {
-  display: grid;
-  grid-template-columns: 1.2fr .8fr;
-  gap: 18px;
-  margin-bottom: 22px;
-}
-
-.building-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.building-card {
-  overflow: hidden;
-  border-radius: var(--radius);
-}
-
-.building-image {
-  position: relative;
-  height: 180px;
-  background-color: #dfe9df;
-}
-
-.building-image::before,
-.building-image::after {
-  content: "";
-  position: absolute;
-}
-
-.building-image::before {
-  left: 16%;
-  right: 16%;
-  bottom: 0;
-  height: 62%;
-  background: rgba(32, 84, 57, .6);
-  clip-path: polygon(0 28%, 50% 0, 100% 28%, 100% 100%, 0 100%);
-}
-
-.building-image::after {
-  left: 44%;
-  bottom: 0;
-  width: 13%;
-  height: 35%;
-  background: rgba(255,255,255,.72);
-}
-
-.building-image.sky { background: linear-gradient(#cde8ed 60%, #92b981 60%); }
-.building-image.sunset { background: linear-gradient(#f0d6bd 60%, #9bb17d 60%); }
-.building-image.stone { background: linear-gradient(#d4dad7 60%, #8da18b 60%); }
-
-.demo-badge {
-  position: absolute;
-  top: 13px;
-  left: 13px;
-  z-index: 2;
-  padding: 5px 9px;
-  border-radius: 999px;
-  color: #fff;
-  background: rgba(23,60,44,.85);
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.building-body {
-  padding: 19px;
-}
-
-.building-body p {
-  min-height: 48px;
-  margin: 9px 0 15px;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 1.75;
-}
-
-.field-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 15px;
-}
-
-.field-list span {
-  padding: 6px 9px;
-  border-radius: 8px;
-  color: var(--muted);
-  background: var(--surface-soft);
-  font-size: 11px;
-}
-
 .empty {
   padding: 50px 24px;
   border: 1px dashed #b8c5bb;
@@ -1135,13 +1043,8 @@ h3 {
   }
 
   .overview-grid,
-  .profile-top-grid,
-  .building-intro {
+  .profile-top-grid {
     grid-template-columns: 1fr;
-  }
-
-  .building-grid {
-    grid-template-columns: repeat(2, 1fr);
   }
 
   .profile-layout {
@@ -1206,7 +1109,6 @@ h3 {
   .players-grid,
   .portal-grid,
   .duo-list,
-  .building-grid,
   .detail-grid {
     grid-template-columns: 1fr;
   }
