@@ -112,14 +112,6 @@
         { key: "soloRate", label: "ひとり時間率", description: "256ブロック以内にほかの対象者がいなかった割合", format: "percent" },
       ],
     },
-    {
-      key: "social",
-      label: "交流",
-      categories: [
-        { key: "metRate10h", label: "出会いペース", description: "100ブロック以内へ近づいた異なる人数を10時間あたりで比較" },
-        { key: "crowdAverage", label: "にぎやか中心度", description: "100ブロック以内にいた対象者の平均人数", format: "average" },
-      ],
-    },
   ];
   const getRanking = (key) =>
     [...data.players].sort((a, b) => (b[key] || 0) - (a[key] || 0) || a.name.localeCompare(b.name));
